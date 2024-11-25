@@ -1,0 +1,46 @@
+body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+header {
+    background-color: #3367D6;
+    color: white;
+    padding: 10px;
+    text-align: center;
+}
+
+#connection-status {
+    margin-top: 10px;
+    font-size: 0.8em;
+}
+
+#notes-container {
+    margin-top: 20px;
+}
+
+.note {
+    background-color: #f4f4f4;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+button {
+    background-color: #3367D6;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin: 10px 0;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #2256B1;
+}
