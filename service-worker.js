@@ -3,9 +3,6 @@ const assetsToCache = [
   '/',
   '/index.html',
   '/fln_logo.png',
-   '/1.png',
-   '2.png',
-    '3.png',
   // Add other assets (icons, images)
 ];
 
