@@ -294,8 +294,9 @@ nav a:hover {
       menuButton.addEventListener("click", function () {
         navMenu.classList.toggle("active");
       });
+    });
 
-      let deferredPrompt;
+    let deferredPrompt;
 
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
@@ -316,6 +317,7 @@ nav a:hover {
       });
     });
   });
+    
   </script>
 
 </body>
