@@ -242,7 +242,7 @@ nav a:hover {
     </div>
   
     <!-- Move the Download Button above the navigation menu -->
-    <a href="https://github.com/flnodisha/flnodisha/raw/main/flnodisha.apk" class="download-btn" download>Download</a>
+    <button id="installPWA" class="download-btn">Install App</button>
   
     <nav>
       <a href="team.html">Team</a>
@@ -294,6 +294,39 @@ nav a:hover {
         navMenu.classList.toggle("active");
       });
     });
+    let deferredPrompt;
+      const installBtn = document.getElementById('installPWA');
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent the mini-infobar from appearing
+        e.preventDefault();
+        // Save the event so it can be triggered later
+        deferredPrompt = e;
+        // Show the install button
+        installBtn.style.display = 'block';
+      });
+
+      installBtn.addEventListener('click', () => {
+        if (deferredPrompt) {
+          // Show the install prompt
+          deferredPrompt.prompt();
+          // Wait for the user's response
+          deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+              console.log('User accepted the install prompt');
+            } else {
+              console.log('User dismissed the install prompt');
+            }
+            deferredPrompt = null;
+          });
+        }
+      });
+
+      window.addEventListener('appinstalled', () => {
+        console.log('PWA installed');
+        // Hide the install button after installation
+        installBtn.style.display = 'none';
+      });
   </script>
 
 </body>
