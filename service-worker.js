@@ -7,7 +7,7 @@ const assetsToCache = [
   '/2.png'/
   '/3.png'/
   '/class1.html',
-  '/hatiochadhei/word.html',
+  '/manifest.json',
   // Add other assets (icons, images)
 ];
 
