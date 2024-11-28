@@ -12,7 +12,7 @@
     }
     #pdf-render {
       display: block;
-      margin: 20px auto;
+      margin: 0 auto;
       width: 100%;
       max-width: 800px;
       height: auto;
@@ -20,8 +20,8 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
   </style>
-  <!-- Include PDF.js Library from CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.0.943/pdf.mi"></script>
+  <!-- Including PDF.js from jsDelivr CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.0.943/build/pdf.min.js"></script>
 </head>
 <body>
   <canvas id="pdf-render"></canvas>
@@ -32,7 +32,8 @@
     const ctx = canvas.getContext('2d');
 
     // Set up PDF.js worker
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.0.943/pdf.worker.min.js';
+    const pdfjsLib = window['pdfjs-dist/build/pdf'];
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.0.943/build/pdf.worker.min.js';
 
     // Load the PDF
     const url = '101.pdf'; // Update with the name of your PDF file
