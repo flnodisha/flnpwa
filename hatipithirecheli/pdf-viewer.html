@@ -14,15 +14,17 @@
       min-height: 100vh;
       background-color: #f8e8e8;
     }
-    iframe {
+    object {
       width: 90%;
       height: 90vh;
-      border: none;
+      border: 1px solid #ccc;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
   </style>
 </head>
 <body>
-  <iframe src="101.pdf"></iframe>
+  <object data="101.pdf" type="application/pdf">
+    <p>It seems your browser doesn’t support PDFs. Download it instead: <a href="101.pdf">Download PDF</a>.</p>
+  </object>
 </body>
 </html>
