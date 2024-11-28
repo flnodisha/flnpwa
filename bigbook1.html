@@ -226,6 +226,7 @@ nav a:hover {
 <body>
 
   <header class="header">
+    <img id="back-btn" class="back-icon" src="back.png" alt="Back">
     <div class="logo">ବଡ ବହି</div>
     <div id="menu-button" class="menu-button">
       <span></span>
@@ -289,13 +290,41 @@ nav a:hover {
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      const menuButton = document.getElementById("menu-button");
-      const navMenu = document.querySelector("header nav");
+  const backButton = document.getElementById("back-btn");
 
-      menuButton.addEventListener("click", function () {
-        navMenu.classList.toggle("active");
+  backButton.addEventListener("click", function () {
+    window.history.back(); // Navigate to the previous page
+  });
+
+  const menuButton = document.getElementById("menu-button");
+  const navMenu = document.querySelector("header nav");
+
+  menuButton.addEventListener("click", function () {
+    navMenu.classList.toggle("active");
       });
     });
+
+    let deferredPrompt;
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    const installBtn = document.getElementById("install-btn");
+    installBtn.style.display = "block";
+
+    installBtn.addEventListener("click", () => {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === "accepted") {
+          console.log("PWA installation accepted.");
+        } else {
+          console.log("PWA installation declined.");
+        }
+        deferredPrompt = null;
+      });
+    });
+  });
   </script>
 
 </body>
