@@ -20,43 +20,53 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
   </style>
-  <!-- Including PDF.js from jsDelivr CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.0.943/build/pdf.min.js"></script>
+  <!-- Updated PDF.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.10.377/es5/build/pdf.min.js"></script>
 </head>
 <body>
   <canvas id="pdf-render"></canvas>
 
   <script>
-    // Reference the canvas and context
     const canvas = document.getElementById('pdf-render');
     const ctx = canvas.getContext('2d');
 
     // Set up PDF.js worker
     const pdfjsLib = window['pdfjs-dist/build/pdf'];
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.0.943/build/pdf.worker.min.js';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.10.377/es5/build/pdf.worker.min.js';
 
-    // Load the PDF
-    const url = '101.pdf'; // Update with the name of your PDF file
+    const url = '101.pdf'; // Ensure the PDF file is in the same directory
+
+    // Log the URL to check if it's correct
+    console.log('Loading PDF from:', url);
 
     pdfjsLib.getDocument(url).promise.then((pdf) => {
+      console.log('PDF loaded');
+      
       // Fetch the first page
       pdf.getPage(1).then((page) => {
         const viewport = page.getViewport({ scale: 1.5 });
+        console.log(`Viewport size: ${viewport.width}x${viewport.height}`);
 
         // Resize canvas to match the PDF dimensions
         canvas.width = viewport.width;
         canvas.height = viewport.height;
 
-        // Render the page into the canvas
         const renderContext = {
           canvasContext: ctx,
           viewport: viewport,
         };
 
-        page.render(renderContext);
+        page.render(renderContext).promise.then(() => {
+          console.log('Page rendered');
+        }).catch(err => {
+          console.error('Error rendering page: ', err);
+        });
+      }).catch((error) => {
+        console.error('Error loading page: ', error);
+        alert('Failed to load page!');
       });
     }).catch((error) => {
-      console.error('Error rendering PDF:', error);
+      console.error('Error loading PDF: ', error);
       alert('Failed to load PDF!');
     });
   </script>
