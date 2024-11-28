@@ -20,7 +20,6 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
   </style>
-  <!-- Updated PDF.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.10.377/es5/build/pdf.min.js"></script>
 </head>
 <body>
@@ -34,7 +33,8 @@
     const pdfjsLib = window['pdfjs-dist/build/pdf'];
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.10.377/es5/build/pdf.worker.min.js';
 
-    const url = '101.pdf'; // Ensure the PDF file is in the same directory
+    // Use relative URL for GitHub Pages
+    const url = '101.pdf'; // Assuming the PDF is in the same folder as this HTML file
 
     // Log the URL to check if it's correct
     console.log('Loading PDF from:', url);
