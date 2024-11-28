@@ -77,21 +77,41 @@
       }
     }
      /* Back Icon Styling */
-.back-icon {
-  width: 30px; /* Adjust size as needed */
-  height: 30px;
-  cursor: pointer;
-  position: absolute;
-  top: 80px;
-  left: 10px;
-}
+#backButton {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 9999;
+            cursor: pointer;
+            background-color: #ffffff;
+            border: none;
+            border-radius: 50%; /* Circular button */
+            padding: 0px;
+            text-decoration: none; /* Remove default link underline */
+            display: inline-block; /* Ensure button is inline */
+            -webkit-tap-highlight-color: transparent; /* For iOS Safari */
+            tap-highlight-color: transparent; /* For other browsers */
+            transition: transform 0.2s ease;
+        }
 
-.back-icon:hover {
-  opacity: 0.8; /* Add a hover effect */
-}
+        #backButton:hover {
+            transform: scale(1.1); /* Enlarges back button on hover */
+        }
+
+        #backButton:active {
+            transform: scale(0.9); /* Shrinks button when clicked */
+        }
+
+        #backButton img {
+            width: 30px; /* Adjust icon size */
+            height: auto;
+        }
   </style>
 </head>
 <body>
+  <button id="backButton">
+        <img src="back.png" alt="Back">
+    </button>
   <img id="back-btn" class="back-icon" src="back.png" alt="Back">
     <div class="header">
         FLN Odisha
@@ -132,12 +152,9 @@
     </p>
   </div>
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-  const backButton = document.getElementById("back-btn");
-
-  backButton.addEventListener("click", function () {
-    window.history.back(); // Navigate to the previous page
-  });
+    backButton.addEventListener('click', () => {
+            history.back();
+        });
       </script>
 
 </body>
