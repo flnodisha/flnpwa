@@ -352,7 +352,7 @@ nav a:hover {
     </div>
   
     <!-- Move the Download Button above the navigation menu -->
-    <a href="https://github.com/flnodisha/flnodisha/raw/main/flnodisha.apk" class="download-btn" download>Download</a>
+    <button id="install-btn" class="download-btn">Install App</button>
   
     <nav>
       <a href="team.html">Team</a>
@@ -438,6 +438,29 @@ nav a:hover {
         }, 2500);
       }
     });
+
+     let deferredPrompt;
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    const installBtn = document.getElementById("install-btn");
+    installBtn.style.display = "block";
+
+    installBtn.addEventListener("click", () => {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === "accepted") {
+          console.log("PWA installation accepted.");
+        } else {
+          console.log("PWA installation declined.");
+        }
+        deferredPrompt = null;
+      });
+    });
+  });
+    
   </script>
 
 </body>
