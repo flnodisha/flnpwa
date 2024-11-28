@@ -79,6 +79,7 @@
   </style>
 </head>
 <body>
+  <img id="back-btn" class="back-icon" src="back.png" alt="Back">
     <div class="header">
         FLN Odisha
       </div>
@@ -117,6 +118,14 @@
       The FLN Odisha app is designed for teachers, students, and parents involved in the foundational stages of education. It offers resources to improve the learning environment both in schools and at home, ensuring every child in Odisha has access to quality education.
     </p>
   </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+  const backButton = document.getElementById("back-btn");
+
+  backButton.addEventListener("click", function () {
+    window.history.back(); // Navigate to the previous page
+  });
+      </script>
 
 </body>
 </html>
