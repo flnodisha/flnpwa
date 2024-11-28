@@ -8,23 +8,56 @@
     body {
       margin: 0;
       padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background-color: #f8e8e8;
+      background-color: #f4f4f4;
     }
-    object {
-      width: 90%;
-      height: 90vh;
+    #pdf-render {
+      display: block;
+      margin: 20px auto;
+      width: 100%;
+      max-width: 800px;
+      height: auto;
       border: 1px solid #ccc;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
   </style>
+  <!-- Include PDF.js Library from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.17.1/pdf.min.js"></script>
 </head>
 <body>
-  <object data="101.pdf" type="application/pdf">
-    <p>It seems your browser doesn’t support PDFs. Download it instead: <a href="101.pdf">Download PDF</a>.</p>
-  </object>
+  <canvas id="pdf-render"></canvas>
+
+  <script>
+    // Reference the canvas and context
+    const canvas = document.getElementById('pdf-render');
+    const ctx = canvas.getContext('2d');
+
+    // Set up PDF.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.17.1/pdf.worker.min.js';
+
+    // Load the PDF
+    const url = '101.pdf'; // Update with the name of your PDF file
+
+    pdfjsLib.getDocument(url).promise.then((pdf) => {
+      // Fetch the first page
+      pdf.getPage(1).then((page) => {
+        const viewport = page.getViewport({ scale: 1.5 });
+
+        // Resize canvas to match the PDF dimensions
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+
+        // Render the page into the canvas
+        const renderContext = {
+          canvasContext: ctx,
+          viewport: viewport,
+        };
+
+        page.render(renderContext);
+      });
+    }).catch((error) => {
+      console.error('Error rendering PDF:', error);
+      alert('Failed to load PDF!');
+    });
+  </script>
 </body>
 </html>
