@@ -33,16 +33,17 @@
             margin-bottom: 10px;
         }
         
-        #zoom-level {
-            font-size: 16px;
-            min-width: 50px;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
     <div id="pdf-container">
         <div id="pdf-render"></div>
+        <div id="zoom-controls">
+            <button id="zoom-out">-</button>
+            <span id="zoom-level">100%</span>
+            <button id="zoom-in">+</button>
+            <button id="fit-width">⇆</button>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
