@@ -34,29 +34,58 @@
 </head>
 <body>
     <div id="pdf-container">
-        <div id="error-message"></div>
+        <div id="error-message">
+            Loading PDF... Please wait.
+        </div>
     </div>
 
-    <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
+    <!-- Multiple CDN sources for PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://unpkg.com/pdfjs-dist@2.16.105/build/pdf.min.js"></script>
+
     <script>
-        // Get references
-        const container = document.getElementById('pdf-container');
-        const errorMessageEl = document.getElementById('error-message');
+        // Comprehensive library and PDF loading check
+        function checkPDFLibrary() {
+            const errorMessageEl = document.getElementById('error-message');
+            
+            // Check if PDF.js is loaded from any source
+            if (typeof pdfjsLib === 'undefined') {
+                errorMessageEl.innerHTML = `
+                    <h2>Library Loading Error</h2>
+                    <p>PDF.js library failed to load from all sources.</p>
+                    <details>
+                        <summary>Troubleshooting Steps</summary>
+                        <ul>
+                            <li>Check internet connection</li>
+                            <li>Verify CDN accessibility</li>
+                            <li>Disable ad-blockers or firewall</li>
+                            <li>Try alternative browser</li>
+                        </ul>
+                    </details>
+                `;
+                return false;
+            }
+            return true;
+        }
 
         // PDF rendering function
         async function renderPDF(url) {
+            const container = document.getElementById('pdf-container');
+            const errorMessageEl = document.getElementById('error-message');
+
             try {
-                // Ensure PDF.js is loaded
-                if (typeof pdfjsLib === 'undefined') {
-                    throw new Error('PDF.js library not loaded');
-                }
+                // Ensure library is loaded
+                if (!checkPDFLibrary()) return;
 
-                // Set worker source
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.js';
+                // Set worker source explicitly
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-                // Load the PDF
+                // Attempt to load PDF
                 const loadingTask = pdfjsLib.getDocument(url);
                 const pdf = await loadingTask.promise;
+
+                // Clear any previous content
+                container.innerHTML = '';
 
                 // Get the first page
                 const page = await pdf.getPage(1);
@@ -79,36 +108,48 @@
                 await page.render(renderContext);
 
             } catch (error) {
-                // Comprehensive error handling
-                console.error('PDF Rendering Error:', error);
+                console.error('Detailed PDF Rendering Error:', error);
                 
+                // Detailed error messaging
                 let errorMessage = 'Failed to load PDF. ';
-                if (error.name === 'InvalidPDFException') {
-                    errorMessage += 'The PDF is invalid or corrupted.';
-                } else if (error.name === 'MissingPDFException') {
-                    errorMessage += 'The PDF file is missing.';
-                } else if (error.name === 'UnexpectedResponseException') {
-                    errorMessage += 'Unexpected response from the server.';
-                } else {
-                    errorMessage += error.message || 'An unknown error occurred.';
+                switch(error.name) {
+                    case 'InvalidPDFException':
+                        errorMessage += 'The PDF is invalid or corrupted.';
+                        break;
+                    case 'MissingPDFException':
+                        errorMessage += 'The PDF file is missing.';
+                        break;
+                    case 'UnexpectedResponseException':
+                        errorMessage += 'Unexpected response from the server.';
+                        break;
+                    default:
+                        errorMessage += error.message || 'An unknown error occurred.';
                 }
 
                 errorMessageEl.innerHTML = `
                     <h2>PDF Loading Error</h2>
                     <p>${errorMessage}</p>
-                    <p>Please check the following:</p>
+                    <details>
+                        <summary>Troubleshooting Details</summary>
+                        <ul>
+                            <li>File Path: sample.pdf</li>
+                            <li>Error Name: ${error.name}</li>
+                            <li>Full Error: ${error.message}</li>
+                        </ul>
+                    </details>
+                    <p>Possible solutions:</p>
                     <ul>
-                        <li>Ensure the PDF file exists</li>
-                        <li>Check file path is correct</li>
-                        <li>Verify file permissions</li>
+                        <li>Verify PDF file exists</li>
+                        <li>Check file permissions</li>
+                        <li>Ensure correct file path</li>
                         <li>Check browser console for more details</li>
                     </ul>
                 `;
             }
         }
 
-        // Attempt to render PDF
-        renderPDF('sample.pdf');
+        // Attempt to render PDF when page loads
+        window.addEventListener('load', () => renderPDF('sample.pdf'));
     </script>
 </body>
 </html>
