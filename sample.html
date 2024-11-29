@@ -2,154 +2,195 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PDF Viewer</title>
+    <title>Advanced PDF Viewer</title>
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+        body, html {
+            height: 100%;
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
+            background-color: #808080;
         }
         #pdf-container {
-            width: 90%;
-            height: 90vh;
-            background-color: white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            position: relative;
-            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
-        #error-message {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: red;
+        #toolbar {
+            display: flex;
+            align-items: center;
+            background-color: #3c3c3c;
+            padding: 10px;
+            color: white;
+        }
+        #toolbar button {
+            background: none;
+            border: none;
+            color: white;
+            margin: 0 10px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #toolbar button:hover {
+            color: #4CAF50;
+        }
+        #page-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #808080;
+            padding: 20px 0;
+        }
+        #pdf-render {
+            max-width: 100%;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .page-wrapper {
+            margin-bottom: 20px;
+            background-color: white;
+        }
+        #page-num, #total-pages {
+            margin: 0 10px;
         }
     </style>
 </head>
 <body>
     <div id="pdf-container">
-        <div id="error-message">
-            Loading PDF... Please wait.
+        <div id="toolbar">
+            <button id="prev-page">◀ Previous</button>
+            <span>Page </span>
+            <input type="number" id="page-num" min="1" value="1" style="width: 50px;">
+            <span>of </span>
+            <span id="total-pages">0</span>
+            <button id="next-page">Next ▶</button>
+            <button id="zoom-in">🔍+</button>
+            <button id="zoom-out">🔍-</button>
         </div>
+        <div id="page-container"></div>
     </div>
 
-    <!-- Multiple CDN sources for PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <script src="https://unpkg.com/pdfjs-dist@2.16.105/build/pdf.min.js"></script>
-
     <script>
-        // Comprehensive library and PDF loading check
-        function checkPDFLibrary() {
-            const errorMessageEl = document.getElementById('error-message');
-            
-            // Check if PDF.js is loaded from any source
-            if (typeof pdfjsLib === 'undefined') {
-                errorMessageEl.innerHTML = `
-                    <h2>Library Loading Error</h2>
-                    <p>PDF.js library failed to load from all sources.</p>
-                    <details>
-                        <summary>Troubleshooting Steps</summary>
-                        <ul>
-                            <li>Check internet connection</li>
-                            <li>Verify CDN accessibility</li>
-                            <li>Disable ad-blockers or firewall</li>
-                            <li>Try alternative browser</li>
-                        </ul>
-                    </details>
-                `;
-                return false;
+        // PDF Viewer Class
+        class PDFViewer {
+            constructor() {
+                // DOM Elements
+                this.pageContainer = document.getElementById('page-container');
+                this.pageNumElement = document.getElementById('page-num');
+                this.totalPagesElement = document.getElementById('total-pages');
+                this.prevPageBtn = document.getElementById('prev-page');
+                this.nextPageBtn = document.getElementById('next-page');
+                this.zoomInBtn = document.getElementById('zoom-in');
+                this.zoomOutBtn = document.getElementById('zoom-out');
+
+                // PDF Variables
+                this.pdfDocument = null;
+                this.currentPage = 1;
+                this.totalPages = 0;
+                this.currentScale = 1.5;
+
+                // Bind event listeners
+                this.bindEvents();
             }
-            return true;
-        }
 
-        // PDF rendering function
-        async function renderPDF(url) {
-            const container = document.getElementById('pdf-container');
-            const errorMessageEl = document.getElementById('error-message');
+            async loadPDF(url) {
+                try {
+                    // Configure PDF.js
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-            try {
-                // Ensure library is loaded
-                if (!checkPDFLibrary()) return;
+                    // Load PDF
+                    this.pdfDocument = await pdfjsLib.getDocument(url).promise;
+                    this.totalPages = this.pdfDocument.numPages;
 
-                // Set worker source explicitly
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+                    // Update UI
+                    this.totalPagesElement.textContent = this.totalPages;
+                    this.pageNumElement.max = this.totalPages;
 
-                // Attempt to load PDF
-                const loadingTask = pdfjsLib.getDocument(url);
-                const pdf = await loadingTask.promise;
+                    // Render first page
+                    this.renderPage(1);
+                } catch (error) {
+                    console.error('PDF Loading Error:', error);
+                    this.pageContainer.innerHTML = `<p>Error loading PDF: ${error.message}</p>`;
+                }
+            }
 
-                // Clear any previous content
-                container.innerHTML = '';
+            async renderPage(pageNumber) {
+                // Clear previous pages
+                this.pageContainer.innerHTML = '';
 
-                // Get the first page
-                const page = await pdf.getPage(1);
-
-                // Create a canvas for the page
+                // Render specified page
+                const page = await this.pdfDocument.getPage(pageNumber);
+                
+                // Create canvas for page
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
-                container.appendChild(canvas);
+                this.pageContainer.appendChild(canvas);
 
-                // Calculate viewport
-                const viewport = page.getViewport({ scale: 1.5 });
+                // Calculate viewport with current scale
+                const viewport = page.getViewport({ scale: this.currentScale });
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
 
-                // Render the page
+                // Render page on canvas
                 const renderContext = {
                     canvasContext: context,
                     viewport: viewport
                 };
                 await page.render(renderContext);
 
-            } catch (error) {
-                console.error('Detailed PDF Rendering Error:', error);
-                
-                // Detailed error messaging
-                let errorMessage = 'Failed to load PDF. ';
-                switch(error.name) {
-                    case 'InvalidPDFException':
-                        errorMessage += 'The PDF is invalid or corrupted.';
-                        break;
-                    case 'MissingPDFException':
-                        errorMessage += 'The PDF file is missing.';
-                        break;
-                    case 'UnexpectedResponseException':
-                        errorMessage += 'Unexpected response from the server.';
-                        break;
-                    default:
-                        errorMessage += error.message || 'An unknown error occurred.';
-                }
+                // Update current page
+                this.currentPage = pageNumber;
+                this.pageNumElement.value = pageNumber;
+            }
 
-                errorMessageEl.innerHTML = `
-                    <h2>PDF Loading Error</h2>
-                    <p>${errorMessage}</p>
-                    <details>
-                        <summary>Troubleshooting Details</summary>
-                        <ul>
-                            <li>File Path: sample.pdf</li>
-                            <li>Error Name: ${error.name}</li>
-                            <li>Full Error: ${error.message}</li>
-                        </ul>
-                    </details>
-                    <p>Possible solutions:</p>
-                    <ul>
-                        <li>Verify PDF file exists</li>
-                        <li>Check file permissions</li>
-                        <li>Ensure correct file path</li>
-                        <li>Check browser console for more details</li>
-                    </ul>
-                `;
+            bindEvents() {
+                // Previous Page
+                this.prevPageBtn.addEventListener('click', () => {
+                    if (this.currentPage > 1) {
+                        this.renderPage(this.currentPage - 1);
+                    }
+                });
+
+                // Next Page
+                this.nextPageBtn.addEventListener('click', () => {
+                    if (this.currentPage < this.totalPages) {
+                        this.renderPage(this.currentPage + 1);
+                    }
+                });
+
+                // Page Number Input
+                this.pageNumElement.addEventListener('change', (e) => {
+                    const pageNum = parseInt(e.target.value);
+                    if (pageNum > 0 && pageNum <= this.totalPages) {
+                        this.renderPage(pageNum);
+                    }
+                });
+
+                // Zoom In
+                this.zoomInBtn.addEventListener('click', () => {
+                    this.currentScale += 0.25;
+                    this.renderPage(this.currentPage);
+                });
+
+                // Zoom Out
+                this.zoomOutBtn.addEventListener('click', () => {
+                    if (this.currentScale > 0.5) {
+                        this.currentScale -= 0.25;
+                        this.renderPage(this.currentPage);
+                    }
+                });
             }
         }
 
-        // Attempt to render PDF when page loads
-        window.addEventListener('load', () => renderPDF('sample.pdf'));
+        // Initialize PDF Viewer
+        const pdfViewer = new PDFViewer();
+        pdfViewer.loadPDF('sample.pdf');
     </script>
 </body>
 </html>
