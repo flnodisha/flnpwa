@@ -1,1 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Responsive Interactive Tiles</title>
+  <style>
+    /* Reset and basic styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      background: #f8e8e8;
+      font-family: Arial, sans-serif;
+    }
+
+    /* Header strip styling */
+header {
+  display: flex;
+  position: fixed;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #333;
+  color: white;
+  padding: 10px 20px;
+  z-index: 999;
+  flex-wrap: wrap; /* Allow elements to wrap on small screens */
+}
+
+/* Ensure the menu icon is always positioned at the top-right corner */
+.menu-button {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 25px;
+  height: 20px;
+  cursor: pointer;
+  position: absolute;
+  top: 20px;
+  right: 20px; /* Position the icon in the top-right corner */
+}
+
+.menu-button span {
+  display: block;
+  height: 3px;
+  background-color: white;
+  border-radius: 2px;
+}
+
+/* Navigation Menu */
+nav {
+  display: flex;
+  gap: 15px;
+  transition: transform 0.3s ease;
+}
+
+nav.active {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 50px;
+  right: 20px;
+  background-color: #333;
+  padding: 10px;
+  border-radius: 5px;
+  gap: 10px;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+}
+
+nav a:hover {
+  background-color: #f9c12b;
+  color: black;
+}
+
+/* Show hamburger menu on small screens */
+@media (max-width: 768px) {
+  header {
+    justify-content: flex-start;
+    padding: 20px; /* Adjust padding for mobile */
+  }
+
+  /* Position the download button to the left of the menu icon on mobile */
+  .menu-button {
+    display: flex; /* Show menu button on mobile */
+    right: 10px; /* Keep it slightly from the right edge */
+  }
+
+  .download-btn {
+    background-color: #f9c12b;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    display: block;
+    position: absolute;
+    top: 10px;
+    right: 70px; /* Move it slightly to the left from the menu button */
+  }
+
+  /* Keep the nav menu visible and right aligned */
+  nav {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 50px;
+    right: 20px;
+  }
+
+  nav.active {
+    display: flex;
+  }
+
+  /* Ensure the download button is always visible on mobile */
+  .download-btn {
+    order: 1; /* Move the download button above the nav menu */
+  }
+  
+  /* Ensure the nav menu is ordered after the download button */
+  nav {
+    order: 2;
+  }
+}
+
+/* Hide the download button on desktop */
+.download-btn {
+  background-color: #f9c12b;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-decoration: none;
+  display: block;
+  order: 2; /* Ensure download button is after the nav menu on desktop */
+}
+
+
+    /* Centered container for tiles */
+    .tile-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      align-items: center;
+      padding: 150px 20px 20px;
+    }
+
+    /* Individual tile styles */
+    .tile {
+      flex: 1 1 200px;
+      max-width: 300px;
+      height: 150px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.4s;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .tile:hover {
+      transform: scale(1.05);
+      box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .tile::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(0,0,0,0.1));
+      transform: scale(2);
+      transition: transform 0.4s;
+      z-index: 0;
+    }
+
+    .tile:hover::before {
+      transform: scale(1);
+    }
+
+    .tile-title {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #333;
+      z-index: 1;
+    }
+
+    .tile-text {
+      font-size: 0.9em;
+      color: #555;
+      padding: 0 10px;
+      z-index: 1;
+    }
+
+    .bigbook { background:#ffcccb; }
+    .poster { background: #57c2e6; }
+    .story { background: #7ff07f; }
+    .textbook { background: #ffd700; }
+    .worksheet { background:#ffcccb; }
+    .digital { background: #57c2e6; }
+
+     /* Back Icon Styling */
+.back-icon {
+  width: 30px; /* Adjust size as needed */
+  height: 30px;
+  cursor: pointer;
+  position: absolute;
+  top: 80px;
+  left: 10px;
+}
+
+.back-icon:hover {
+  opacity: 0.8; /* Add a hover effect */
+}
+
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <img id="back-btn" class="back-icon" src="back.png" alt="Back">
+    <div class="logo">ପ୍ରଥମ ଶ୍ରେଣୀ / ବଡ ବହି</div>
+    <div id="menu-button" class="menu-button">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  
+    <!-- Move the Download Button above the navigation menu -->
+    <a href="https://github.com/flnodisha/flnodisha/raw/main/flnodisha.apk" class="download-btn" download>Download</a>
+  
+    <nav>
+      <a href="team.html">Team</a>
+      <a href="about.html">About Us</a>
+      <a href="contact.html">Contact Us</a>
+    </nav>
+  </header>
+  
+
+  <!-- Centered Tile Container -->
+  <div class="tile-container">
+    <a href="hatiochadhei/hatiochadhei.html" class="tile bigbook">
+      <div class="tile-title">ବାଃ ବାଃ ରେ ବୁଢ଼ୀ</div>
+    </a>
+
+    <a href="tinisanga/tinisanga.html" class="tile poster">
+      <div class="tile-title">ବଡ ବେଲୁନ୍</div>
+    </a>
+
+    <a href="hatipithirecheli/hatipithirecheli.html" class="tile story">
+      <div class="tile-title">ରାତିର କଣ୍ଢେଇ</div>
+    </a>
+
+    <a href="kukudaokumbhira/kukudaokumbhira.html" class="tile textbook">
+      <div class="tile-title">ମିନାର ଘର</div>
+    </a>
+
+    <a href="bhendirabahaghara/bhendirabahaghara.html" class="tile story">
+        <div class="tile-title">ଦୁଇଟି ପିମ୍ପୁଡି</div>
+      </a>
+
+    <a href="chalanatukheliba/chalanatukheliba.html" class="tile worksheet">
+        <div class="tile-title">ଗୁଡ଼ି ଓ ଛେଳି</div>
+      </a>
+
+      <a href="upahara/upahara.html" class="tile digital">
+        <div class="tile-title">ବେଙ୍ଗ ଖାଇଲା ଚକୋଲେଟ୍</div>
+      </a>
+
+      <a href="kukudachuabajaragale/kukudachuabajaragale.html" class="tile textbook">
+        <div class="tile-title">ବାଃ ବାଃ କେମିତି ମଜା</div>
+      </a>
+  
+      <a href="sonuraladu/sanuraladu.html" class="tile worksheet">
+          <div class="tile-title">ଭାଲୁର ଚତୁର ପଣିଆ</div>
+        </a>
+  
+        <a href="maaochua/maaochua.html" class="tile digital">
+          <div class="tile-title">ବଳିଆ</div>
+        </a>
+
+            <div class="tile-title">ରାମର ସାଇକେଲ</div>
+      </a>
+
+      <a href="upahara/upahara.html" class="tile digital">
+        <div class="tile-title">ମୂଷା ଓ ହାତୀ</div>
+      </a>
+
+      <a href="kukudachuabajaragale/kukudachuabajaragale.html" class="tile textbook">
+        <div class="tile-title">ନୁଆ ଘୁଙ୍ଗୁର</div>
+      </a>
+  
+      <a href="sonuraladu/sanuraladu.html" class="tile worksheet">
+          <div class="tile-title">ଭାଲୁର ବାଳକଟା</div>
+        </a>
+  
+        <a href="maaochua/maaochua.html" class="tile digital">
+          <div class="tile-title">ଓଟ ପିଠିରେ ସାପ</div>
+        </a>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+  const backButton = document.getElementById("back-btn");
+
+  backButton.addEventListener("click", function () {
+    window.history.back(); // Navigate to the previous page
+  });
+
+  const menuButton = document.getElementById("menu-button");
+  const navMenu = document.querySelector("header nav");
+
+  menuButton.addEventListener("click", function () {
+    navMenu.classList.toggle("active");
+      });
+    });
+
+    let deferredPrompt;
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    const installBtn = document.getElementById("install-btn");
+    installBtn.style.display = "block";
+
+    installBtn.addEventListener("click", () => {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === "accepted") {
+          console.log("PWA installation accepted.");
+        } else {
+          console.log("PWA installation declined.");
+        }
+        deferredPrompt = null;
+      });
+    });
+  });
+  </script>
+
+</body>
+</html>
