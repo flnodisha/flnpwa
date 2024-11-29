@@ -32,26 +32,7 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             margin-bottom: 10px;
         }
-        #zoom-controls {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: rgba(255,255,255,0.9);
-            border-radius: 30px;
-            padding: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        #zoom-controls button {
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 5px;
-        }
+        
         #zoom-level {
             font-size: 16px;
             min-width: 50px;
@@ -62,12 +43,6 @@
 <body>
     <div id="pdf-container">
         <div id="pdf-render"></div>
-        <div id="zoom-controls">
-            <button id="zoom-out">-</button>
-            <span id="zoom-level">100%</span>
-            <button id="zoom-in">+</button>
-            <button id="fit-width">⇆</button>
-        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
