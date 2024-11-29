@@ -11,7 +11,7 @@
             overflow: hidden;
         }
         #pdf-container {
-            width: 100%;
+            width: 95%;
             height: 100%;
             margin: 0 auto;
             position: relative;
@@ -28,18 +28,14 @@
         }
         #pdf-render canvas {
             max-width: 100%;
-            transition: transform 0.2s ease;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             margin-bottom: 10px;
         }
-        
-        
     </style>
 </head>
 <body>
     <div id="pdf-container">
         <div id="pdf-render"></div>
-        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
@@ -47,17 +43,6 @@
         class PDFViewer {
             constructor() {
                 this.pdfContainer = document.getElementById('pdf-render');
-                this.zoomOutBtn = document.getElementById('zoom-out');
-                this.zoomInBtn = document.getElementById('zoom-in');
-                this.zoomLevelEl = document.getElementById('zoom-level');
-                this.fitWidthBtn = document.getElementById('fit-width');
-
-                this.currentScale = 1;
-                this.scaleStep = 0.25;
-                this.minScale = 0.25;
-                this.maxScale = 3;
-
-                this.bindEvents();
             }
 
             async loadPDF(url) {
@@ -86,8 +71,8 @@
                 const context = canvas.getContext('2d');
                 this.pdfContainer.appendChild(canvas);
 
-                // Calculate viewport with initial scale
-                const viewport = page.getViewport({ scale: this.currentScale });
+                // Calculate viewport with default scale
+                const viewport = page.getViewport({ scale: 1 });
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
 
@@ -97,64 +82,6 @@
                     viewport: viewport
                 };
                 await page.render(renderContext);
-            }
-
-            bindEvents() {
-                // Zoom In
-                this.zoomInBtn.addEventListener('click', () => {
-                    if (this.currentScale < this.maxScale) {
-                        this.zoomPages(this.currentScale + this.scaleStep);
-                    }
-                });
-
-                // Zoom Out
-                this.zoomOutBtn.addEventListener('click', () => {
-                    if (this.currentScale > this.minScale) {
-                        this.zoomPages(this.currentScale - this.scaleStep);
-                    }
-                });
-
-                // Fit Width
-                this.fitWidthBtn.addEventListener('click', () => {
-                    this.fitToWidth();
-                });
-
-                // Wheel Zoom
-                this.pdfContainer.addEventListener('wheel', (e) => {
-                    if (e.ctrlKey) {
-                        e.preventDefault();
-                        const delta = e.deltaY > 0 ? -0.25 : 0.25;
-                        const newScale = Math.min(Math.max(this.currentScale + delta, this.minScale), this.maxScale);
-                        this.zoomPages(newScale);
-                    }
-                });
-            }
-
-            zoomPages(newScale) {
-                this.currentScale = newScale;
-                
-                // Update zoom level display
-                this.zoomLevelEl.textContent = `${Math.round(this.currentScale * 100)}%`;
-
-                // Re-render all canvases with new scale
-                const canvases = this.pdfContainer.getElementsByTagName('canvas');
-                for (let canvas of canvases) {
-                    const context = canvas.getContext('2d');
-                    context.setTransform(1, 0, 0, 1, 0, 0);
-                    context.scale(this.currentScale, this.currentScale);
-                    canvas.width = canvas.width; // Reset canvas
-                }
-            }
-
-            fitToWidth() {
-                const containerWidth = this.pdfContainer.clientWidth;
-                const canvas = this.pdfContainer.querySelector('canvas');
-                
-                if (canvas) {
-                    const originalWidth = canvas.width;
-                    const scaleFactor = containerWidth / originalWidth;
-                    this.zoomPages(scaleFactor);
-                }
             }
         }
 
