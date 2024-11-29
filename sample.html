@@ -8,12 +8,11 @@
             margin: 0;
             padding: 0;
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            overflow: hidden;
+            background-color: #f0f0f0;
         }
         #pdf-container {
             width: 90%;
@@ -21,135 +20,95 @@
             background-color: white;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             position: relative;
+            overflow: hidden;
         }
-        #pdf-viewer {
-            width: 100%;
-            height: 100%;
-        }
-        #loading {
+        #error-message {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 18px;
-            color: #666;
-        }
-        #navigation {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 10px;
-        }
-        #navigation button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
+            text-align: center;
+            color: red;
         }
     </style>
 </head>
 <body>
     <div id="pdf-container">
-        <div id="loading">Loading PDF...</div>
-        <canvas id="pdf-viewer"></canvas>
-        <div id="navigation">
-            <button id="prev-page">Previous Page</button>
-            <button id="next-page">Next Page</button>
-        </div>
+        <div id="error-message"></div>
     </div>
 
-    <!-- PDF.js library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
     <script>
-        // PDF.js setup
-        const pdfContainer = document.getElementById('pdf-container');
-        const pdfViewer = document.getElementById('pdf-viewer');
-        const loadingIndicator = document.getElementById('loading');
-        const prevPageBtn = document.getElementById('prev-page');
-        const nextPageBtn = document.getElementById('next-page');
+        // Get references
+        const container = document.getElementById('pdf-container');
+        const errorMessageEl = document.getElementById('error-message');
 
-        let pdfDocument = null;
-        let currentPage = 1;
-        let totalPages = 0;
+        // PDF rendering function
+        async function renderPDF(url) {
+            try {
+                // Ensure PDF.js is loaded
+                if (typeof pdfjsLib === 'undefined') {
+                    throw new Error('PDF.js library not loaded');
+                }
 
-        // PDF.js configuration
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+                // Set worker source
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.js';
 
-        // Load PDF
-        function loadPDF() {
-            pdfjsLib.getDocument('sample.pdf').promise.then(function(pdf) {
-                pdfDocument = pdf;
-                totalPages = pdf.numPages;
-                renderPage(currentPage);
-                
-                // Hide loading indicator
-                loadingIndicator.style.display = 'none';
-                
-                // Update navigation buttons
-                updateNavigation();
-            }).catch(function(error) {
-                loadingIndicator.textContent = 'Error loading PDF: ' + error.message;
-            });
-        }
+                // Load the PDF
+                const loadingTask = pdfjsLib.getDocument(url);
+                const pdf = await loadingTask.promise;
 
-        // Render specific page
-        function renderPage(pageNumber) {
-            pdfDocument.getPage(pageNumber).then(function(page) {
-                const viewport = page.getViewport({scale: calculateScale()});
-                pdfViewer.height = viewport.height;
-                pdfViewer.width = viewport.width;
+                // Get the first page
+                const page = await pdf.getPage(1);
 
-                const context = pdfViewer.getContext('2d');
+                // Create a canvas for the page
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                container.appendChild(canvas);
+
+                // Calculate viewport
+                const viewport = page.getViewport({ scale: 1.5 });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                // Render the page
                 const renderContext = {
                     canvasContext: context,
                     viewport: viewport
                 };
+                await page.render(renderContext);
 
-                page.render(renderContext);
-            });
-        }
+            } catch (error) {
+                // Comprehensive error handling
+                console.error('PDF Rendering Error:', error);
+                
+                let errorMessage = 'Failed to load PDF. ';
+                if (error.name === 'InvalidPDFException') {
+                    errorMessage += 'The PDF is invalid or corrupted.';
+                } else if (error.name === 'MissingPDFException') {
+                    errorMessage += 'The PDF file is missing.';
+                } else if (error.name === 'UnexpectedResponseException') {
+                    errorMessage += 'Unexpected response from the server.';
+                } else {
+                    errorMessage += error.message || 'An unknown error occurred.';
+                }
 
-        // Calculate appropriate scale for the container
-        function calculateScale() {
-            const containerWidth = pdfContainer.clientWidth;
-            const containerHeight = pdfContainer.clientHeight;
-            const pageWidth = pdfDocument.getPage(currentPage).then(page => {
-                const viewport = page.getViewport({scale: 1});
-                const scaleX = containerWidth / viewport.width;
-                const scaleY = containerHeight / viewport.height;
-                return Math.min(scaleX, scaleY);
-            });
-            return pageWidth;
-        }
-
-        // Navigation handlers
-        function updateNavigation() {
-            prevPageBtn.disabled = currentPage <= 1;
-            nextPageBtn.disabled = currentPage >= totalPages;
-        }
-
-        prevPageBtn.addEventListener('click', function() {
-            if (currentPage > 1) {
-                currentPage--;
-                renderPage(currentPage);
-                updateNavigation();
+                errorMessageEl.innerHTML = `
+                    <h2>PDF Loading Error</h2>
+                    <p>${errorMessage}</p>
+                    <p>Please check the following:</p>
+                    <ul>
+                        <li>Ensure the PDF file exists</li>
+                        <li>Check file path is correct</li>
+                        <li>Verify file permissions</li>
+                        <li>Check browser console for more details</li>
+                    </ul>
+                `;
             }
-        });
+        }
 
-        nextPageBtn.addEventListener('click', function() {
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderPage(currentPage);
-                updateNavigation();
-            }
-        });
-
-        // Initial load
-        loadPDF();
+        // Attempt to render PDF
+        renderPDF('sample.pdf');
     </script>
 </body>
 </html>
